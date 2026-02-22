@@ -11,9 +11,23 @@ interface WordEntry {
   hint: string;
 }
 
-export function seedDatabase(db: Database.Database): number {
+function findDataFile(): string {
   const __dirname = path.dirname(fileURLToPath(import.meta.url));
-  const dataPath = path.resolve(__dirname, '../../data/default-words.json');
+  const candidates = [
+    path.resolve(__dirname, '../../data/default-words.json'),  // dev: src/db/ -> data/
+    path.resolve(__dirname, '../data/default-words.json'),     // built: dist/ -> data/
+  ];
+  for (const candidate of candidates) {
+    try {
+      readFileSync(candidate, 'utf-8');
+      return candidate;
+    } catch { /* try next */ }
+  }
+  throw new Error('default-words.json niet gevonden');
+}
+
+export function seedDatabase(db: Database.Database): number {
+  const dataPath = findDataFile();
   const defaultWords: WordEntry[] = JSON.parse(readFileSync(dataPath, 'utf-8'));
 
   let count = 0;
