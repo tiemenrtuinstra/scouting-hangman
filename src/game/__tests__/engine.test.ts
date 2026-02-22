@@ -70,4 +70,23 @@ describe('Game Engine', () => {
     const second = useHint(first.state);
     expect(second.revealedLetter).toBeNull();
   });
+
+  it('should handle words with spaces', () => {
+    let state = createGameState('platte knoop', 1, 'knopen');
+    // Spaces should show as spaces in display
+    const display = getDisplayWord(state);
+    expect(display).toEqual(['_', '_', '_', '_', '_', '_', ' ', '_', '_', '_', '_', '_']);
+
+    // Guess all letters — spaces don't need guessing
+    for (const l of ['p', 'l', 'a', 't', 'e', 'k', 'n', 'o']) {
+      state = guessLetter(state, l);
+    }
+    expect(isGameWon(state)).toBe(true);
+  });
+
+  it('should not reveal spaces as hint', () => {
+    const state = createGameState('a b', 1, 'test');
+    const result = useHint(state);
+    expect(result.revealedLetter).not.toBe(' ');
+  });
 });

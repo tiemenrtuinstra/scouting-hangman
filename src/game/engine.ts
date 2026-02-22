@@ -45,7 +45,7 @@ export function useHint(state: GameState): { state: GameState; revealedLetter: s
   }
 
   const unrevealedLetters = [...new Set(state.word.split(''))]
-    .filter(l => !state.guessedLetters.includes(l));
+    .filter(l => l !== ' ' && !state.guessedLetters.includes(l));
 
   if (unrevealedLetters.length === 0) return { state, revealedLetter: null };
 
@@ -63,7 +63,9 @@ export function useHint(state: GameState): { state: GameState; revealedLetter: s
 }
 
 export function isGameWon(state: GameState): boolean {
-  return [...new Set(state.word.split(''))].every(l => state.guessedLetters.includes(l));
+  return [...new Set(state.word.split(''))]
+    .filter(l => l !== ' ')
+    .every(l => state.guessedLetters.includes(l));
 }
 
 export function isGameLost(state: GameState): boolean {
@@ -71,7 +73,10 @@ export function isGameLost(state: GameState): boolean {
 }
 
 export function getDisplayWord(state: GameState): string[] {
-  return state.word.split('').map(l => (state.guessedLetters.includes(l) ? l.toUpperCase() : '_'));
+  return state.word.split('').map(l => {
+    if (l === ' ') return ' ';
+    return state.guessedLetters.includes(l) ? l.toUpperCase() : '_';
+  });
 }
 
 export function getGameDuration(state: GameState): number {
@@ -80,7 +85,8 @@ export function getGameDuration(state: GameState): number {
 
 export function calculateScore(state: GameState, won: boolean): number {
   if (!won) return 0;
-  const wordBonus = state.word.length * 10;
+  const letterCount = state.word.split('').filter(l => l !== ' ').length;
+  const wordBonus = letterCount * 10;
   const accuracyBonus = (state.maxWrongGuesses - state.wrongGuesses) * 25;
   const speedBonus = Math.max(0, 300 - getGameDuration(state));
   const hintPenalty = state.hintUsed ? -50 : 0;

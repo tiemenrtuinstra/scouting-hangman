@@ -12,8 +12,12 @@ export function WordDisplay({ word, guessedLetters, revealed = false }: WordDisp
   const letters = word.split('');
 
   return (
-    <Box gap={1} justifyContent="center">
+    <Box gap={1} justifyContent="center" flexWrap="wrap">
       {letters.map((letter, i) => {
+        if (letter === ' ') {
+          return <Box key={i} width={3} />;
+        }
+
         const isGuessed = guessedLetters.includes(letter);
         const show = revealed || isGuessed;
 
