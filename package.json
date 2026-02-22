@@ -1,0 +1,43 @@
+{
+  "name": "scouting-hangman",
+  "version": "1.0.0",
+  "description": "Scouting Hangman - Een interactief galgje-spel voor scouts met een pratende beul",
+  "type": "module",
+  "bin": {
+    "scouting-hangman": "./dist/index.js"
+  },
+  "scripts": {
+    "dev": "tsx src/index.tsx",
+    "build": "tsup src/index.tsx --format esm --target node20 --clean --banner.js \"#!/usr/bin/env node\"",
+    "start": "node dist/index.js",
+    "seed": "tsx scripts/seed-db.ts",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "build:binary": "tsx scripts/build-binary.ts"
+  },
+  "keywords": ["scouting", "hangman", "galgje", "cli", "terminal", "game"],
+  "author": "tiemenrtuinstra",
+  "license": "MIT",
+  "dependencies": {
+    "better-sqlite3": "^12.6.2",
+    "commander": "^14.0.3",
+    "ink": "^5.1.0",
+    "ink-big-text": "^2.0.0",
+    "ink-gradient": "^3.0.0",
+    "ink-select-input": "^6.2.0",
+    "ink-spinner": "^5.0.0",
+    "ink-text-input": "^6.0.0",
+    "react": "^18.3.1"
+  },
+  "devDependencies": {
+    "@types/better-sqlite3": "^7.6.12",
+    "@types/react": "^18.3.18",
+    "tsup": "^8.5.1",
+    "tsx": "^4.19.0",
+    "typescript": "^5.7.0",
+    "vitest": "^3.0.0"
+  },
+  "engines": {
+    "node": ">=20.0.0"
+  }
+}
