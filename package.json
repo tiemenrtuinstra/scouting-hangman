@@ -1,6 +1,6 @@
 {
   "name": "scouting-hangman",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "Scouting Hangman - Een interactief galgje-spel voor scouts met een pratende beul",
   "type": "module",
   "bin": {
