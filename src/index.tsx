@@ -3,6 +3,8 @@ import React from 'react';
 import { App } from './App.js';
 import { closeDatabase } from './db/database.js';
 
+process.stdout.write('\x1Bc');
+
 const instance = render(<App />);
 
 instance.waitUntilExit().then(() => {
