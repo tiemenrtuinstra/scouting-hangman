@@ -15,7 +15,7 @@ const MENU_ITEMS = [
   { label: '📊  Statistieken', value: 'stats' as MenuAction },
   { label: '🏅  Prestaties', value: 'achievements' as MenuAction },
   { label: '🏆  Ranglijst', value: 'leaderboard' as MenuAction },
-  { label: '⚙️   Instellingen', value: 'settings' as MenuAction },
+  { label: '🔧  Instellingen', value: 'settings' as MenuAction },
   { label: '🚪  Afsluiten', value: 'quit' as MenuAction },
 ];
 

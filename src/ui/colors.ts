@@ -1,14 +1,14 @@
 export const THEME = {
-  primary: '#2E7D32',      // Scouting green
-  secondary: '#FFA000',    // Amber/gold
-  accent: '#1565C0',       // Blue
-  danger: '#C62828',       // Red
-  warning: '#F57F17',      // Yellow-orange
-  success: '#2E7D32',      // Green
-  muted: '#757575',        // Gray
+  primary: '#4CAF50',      // Scouting green (brighter for readability)
+  secondary: '#FFB300',    // Amber/gold (slightly brighter)
+  accent: '#42A5F5',       // Blue (brighter for dark terminals)
+  danger: '#EF5350',       // Red (brighter for readability)
+  warning: '#FDD835',      // Yellow (brighter)
+  success: '#66BB6A',      // Green (brighter for readability)
+  muted: '#9E9E9E',        // Gray (brighter for dark terminals)
   text: '#FFFFFF',         // White
   bg: '#1A1A1A',           // Dark background
-  highlight: '#81C784',    // Light green highlight
+  highlight: '#A5D6A7',    // Light green highlight (brighter)
 } as const;
 
 export type ThemeColor = keyof typeof THEME;
@@ -19,7 +19,7 @@ export function getMoodColor(mood: string): string {
     onder_de_indruk: THEME.success,
     sarcastisch: THEME.warning,
     gefrustreerd: THEME.danger,
-    meedogenloos: '#4A0000',
+    meedogenloos: '#E53935',
     kindvriendelijk: THEME.secondary,
   };
   return moodColors[mood] ?? THEME.muted;
