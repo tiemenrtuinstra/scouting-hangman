@@ -14,7 +14,6 @@
     "dev": "tsx src/index.tsx",
     "build": "tsup",
     "start": "node dist/index.js",
-    "seed": "tsx scripts/seed-db.ts",
     "test": "vitest run",
     "test:watch": "vitest",
     "build:binary": "tsx scripts/build-binary.ts"
@@ -29,6 +28,14 @@
   ],
   "author": "tiemenrtuinstra",
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/tiemenrtuinstra/scouting-hangman.git"
+  },
+  "homepage": "https://github.com/tiemenrtuinstra/scouting-hangman#readme",
+  "publishConfig": {
+    "access": "public"
+  },
   "dependencies": {
     "better-sqlite3": "^12.6.2",
     "ink": "^5.1.0",
