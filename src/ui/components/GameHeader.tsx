@@ -17,7 +17,7 @@ export function GameHeader({ category, difficulty, playerName }: GameHeaderProps
       justifyContent="space-between"
       width="100%"
     >
-      <Text color={THEME.secondary} bold>⚜️ Scouting Hangman</Text>
+      <Text color={THEME.secondary} bold>⚜ Scouting Hangman</Text>
       <Text color={THEME.muted}>
         Speler: <Text bold color={THEME.text}>{playerName}</Text>
         {' │ '}

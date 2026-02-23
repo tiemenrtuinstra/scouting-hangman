@@ -20,8 +20,10 @@ import {
   getExecutionerDialogue,
   type ExecutionerDialogue,
 } from '../executioner/personality.js';
+import { getPlayerStats } from '../db/stats.js';
 import { DIFFICULTIES } from '../game/difficulty.js';
 import type { DifficultyLevel } from '../game/difficulty.js';
+import type { DialogueContext } from '../executioner/templates.js';
 
 interface GameScreenProps {
   db: Database.Database;
@@ -46,8 +48,29 @@ export function GameScreen({
   onGameEnd,
   onQuit,
 }: GameScreenProps) {
+  // Cache player stats at game start (don't re-query on every guess)
+  const statsRef = useRef(getPlayerStats(db, playerId));
+
+  const buildContext = useCallback((state: GameState, score?: number): Partial<DialogueContext> => {
+    const stats = statsRef.current;
+    return {
+      playerName,
+      streak: stats.currentStreak,
+      totalWins: stats.wins,
+      totalGames: stats.totalGames,
+      winRate: Math.round(stats.winRate),
+      category: state.category,
+      wordLength: state.word.replace(/ /g, '').length,
+      score: score ?? 0,
+      difficulty,
+      remainingLives: state.maxWrongGuesses - state.wrongGuesses,
+      wrongGuesses: state.wrongGuesses,
+      hintUsed: state.hintUsed,
+    };
+  }, [playerName, difficulty]);
+
   const [dialogue, setDialogue] = useState<ExecutionerDialogue>(
-    () => getExecutionerDialogue(db, playerId, 'game_start', difficulty)
+    () => getExecutionerDialogue(db, playerId, 'game_start', difficulty, buildContext(gameState))
   );
   const [showHint, setShowHint] = useState(false);
   const endTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -70,22 +93,24 @@ export function GameScreen({
     const newState = guessLetter(gameState, letter);
     onStateChange(newState);
 
+    const ctx = buildContext(newState);
+
     if (isGameWon(newState)) {
-      setDialogue(getExecutionerDialogue(db, playerId, 'win', difficulty));
+      setDialogue(getExecutionerDialogue(db, playerId, 'win', difficulty, ctx));
       scheduleGameEnd(true, newState);
     } else if (isGameLost(newState)) {
-      setDialogue(getExecutionerDialogue(db, playerId, 'loss', difficulty));
+      setDialogue(getExecutionerDialogue(db, playerId, 'loss', difficulty, ctx));
       scheduleGameEnd(false, newState);
     } else if (newState.wrongGuesses > gameState.wrongGuesses) {
       if (newState.wrongGuesses >= newState.maxWrongGuesses - 1) {
-        setDialogue(getExecutionerDialogue(db, playerId, 'almost_dead', difficulty));
+        setDialogue(getExecutionerDialogue(db, playerId, 'almost_dead', difficulty, ctx));
       } else {
-        setDialogue(getExecutionerDialogue(db, playerId, 'wrong_guess', difficulty));
+        setDialogue(getExecutionerDialogue(db, playerId, 'wrong_guess', difficulty, ctx));
       }
     } else {
-      setDialogue(getExecutionerDialogue(db, playerId, 'correct_guess', difficulty));
+      setDialogue(getExecutionerDialogue(db, playerId, 'correct_guess', difficulty, ctx));
     }
-  }, [gameState, db, playerId, difficulty, onStateChange, scheduleGameEnd]);
+  }, [gameState, db, playerId, difficulty, onStateChange, scheduleGameEnd, buildContext]);
 
   useInput((input, key) => {
     if (key.escape) {
@@ -102,11 +127,12 @@ export function GameScreen({
         const result = applyHint(gameState);
         if (result.revealedLetter) {
           onStateChange(result.state);
+          const ctx = buildContext(result.state);
           if (isGameLost(result.state)) {
-            setDialogue(getExecutionerDialogue(db, playerId, 'loss', difficulty));
+            setDialogue(getExecutionerDialogue(db, playerId, 'loss', difficulty, ctx));
             scheduleGameEnd(false, result.state);
           } else {
-            setDialogue(getExecutionerDialogue(db, playerId, 'wrong_guess', difficulty));
+            setDialogue(getExecutionerDialogue(db, playerId, 'wrong_guess', difficulty, ctx));
           }
         }
       }

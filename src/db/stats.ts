@@ -15,6 +15,7 @@ export interface GameSessionInput {
   guessedLetters: string[];
   durationSeconds: number;
   score: number;
+  hintUsed?: boolean;
 }
 
 export interface PlayerStats {
@@ -49,8 +50,8 @@ export function getOrCreatePlayer(db: Database.Database, name: string): Player {
 
 export function saveGameSession(db: Database.Database, input: GameSessionInput): number {
   const result = db.prepare(`
-    INSERT INTO game_sessions (player_id, word_id, difficulty, won, wrong_guesses, guessed_letters, duration_seconds, score, finished_at)
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP)
+    INSERT INTO game_sessions (player_id, word_id, difficulty, won, wrong_guesses, guessed_letters, duration_seconds, score, hint_used, finished_at)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP)
   `).run(
     input.playerId,
     input.wordId,
@@ -59,7 +60,8 @@ export function saveGameSession(db: Database.Database, input: GameSessionInput):
     input.wrongGuesses,
     JSON.stringify(input.guessedLetters),
     input.durationSeconds,
-    input.score
+    input.score,
+    input.hintUsed ? 1 : 0
   );
   return Number(result.lastInsertRowid);
 }

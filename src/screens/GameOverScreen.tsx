@@ -12,7 +12,6 @@ type GameOverAction = 'play_again' | 'menu' | 'quit';
 interface GameOverScreenProps {
   won: boolean;
   gameState: GameState;
-  word: string;
   newAchievements: string[];
   streak: number;
   onSelect: (action: GameOverAction) => void;
@@ -24,8 +23,9 @@ const MENU_ITEMS = [
   { label: '🚪  Afsluiten', value: 'quit' as GameOverAction },
 ];
 
-export function GameOverScreen({ won, gameState, word, newAchievements, streak, onSelect }: GameOverScreenProps) {
+export function GameOverScreen({ won, gameState, newAchievements, streak, onSelect }: GameOverScreenProps) {
   const art = won ? WIN_ART : LOSS_ART;
+  const word = gameState.word;
   const score = calculateScore(gameState, won);
 
   return (

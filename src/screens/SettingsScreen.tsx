@@ -106,7 +106,7 @@ export function SettingsScreen({
     const items = [
       { label: '📊  Statistieken wissen', value: 'stats' },
       { label: '🏅  Prestaties wissen', value: 'achievements' },
-      { label: '🗑️   Alles wissen', value: 'all' },
+      { label: '🗑  Alles wissen', value: 'all' },
       { label: '← Terug', value: 'back' },
     ];
 
@@ -137,7 +137,7 @@ export function SettingsScreen({
   const items = [
     { label: `🎯  Moeilijkheidsgraad (${diffLabel})`, value: 'difficulty' },
     { label: '👤  Speler wisselen', value: 'switch_player' },
-    { label: '🗑️   Gegevens resetten', value: 'reset' },
+    { label: '🗑  Gegevens resetten', value: 'reset' },
     { label: '← Terug', value: 'back' },
   ];
 

@@ -35,7 +35,7 @@ export function StatsPanel({ stats, playerName }: StatsPanelProps) {
         {stats.longestWord && (
           <Text color={THEME.text}>📏 Langste woord:  <Text bold>{stats.longestWord}</Text></Text>
         )}
-        <Text color={THEME.muted}>⏱️  Speeltijd:      <Text bold>{formatTime(stats.totalPlayTime)}</Text></Text>
+        <Text color={THEME.muted}>⏱  Speeltijd:      <Text bold>{formatTime(stats.totalPlayTime)}</Text></Text>
         <Text color={THEME.muted}>🎯 Gem. fouten:    <Text bold>{Math.round(stats.avgWrongGuesses * 10) / 10}</Text></Text>
       </Box>
     </Box>

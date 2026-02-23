@@ -11,8 +11,6 @@ export const THEME = {
   highlight: '#A5D6A7',    // Light green highlight (brighter)
 } as const;
 
-export type ThemeColor = keyof typeof THEME;
-
 export function getMoodColor(mood: string): string {
   const moodColors: Record<string, string> = {
     neutraal: THEME.muted,
@@ -23,12 +21,6 @@ export function getMoodColor(mood: string): string {
     kindvriendelijk: THEME.secondary,
   };
   return moodColors[mood] ?? THEME.muted;
-}
-
-export function getLetterColor(letter: string, word: string, guessedLetters: string[]): string {
-  if (!guessedLetters.includes(letter.toLowerCase())) return THEME.muted;
-  if (word.includes(letter.toLowerCase())) return THEME.success;
-  return THEME.danger;
 }
 
 export function getHealthColor(wrongGuesses: number, maxGuesses: number): string {

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Box, Text } from 'ink';
 import { THEME } from '../ui/colors.js';
 import { SCOUTING_LOGO } from '../ui/ascii-art.js';
@@ -9,6 +9,8 @@ interface SplashScreenProps {
 
 export function SplashScreen({ onDone }: SplashScreenProps) {
   const [tick, setTick] = useState(0);
+  const onDoneRef = useRef(onDone);
+  onDoneRef.current = onDone;
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -17,14 +19,14 @@ export function SplashScreen({ onDone }: SplashScreenProps) {
 
     const timeout = setTimeout(() => {
       clearInterval(interval);
-      onDone();
+      onDoneRef.current();
     }, 2500);
 
     return () => {
       clearInterval(interval);
       clearTimeout(timeout);
     };
-  }, [onDone]);
+  }, []);
 
   const campfire = tick % 4;
   const fires = ['🔥', '🔥🔥', '🔥🔥🔥', '🔥🔥'];
@@ -38,7 +40,7 @@ export function SplashScreen({ onDone }: SplashScreenProps) {
       </Box>
       <Text> </Text>
       <Text bold color={THEME.secondary}>
-        ⚜️  Scouting Hangman  ⚜️
+        ⚜  Scouting Hangman  ⚜
       </Text>
       <Text color={THEME.muted}>Het galgje-spel voor scouts</Text>
       <Text> </Text>

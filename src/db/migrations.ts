@@ -64,6 +64,7 @@ export function runMigrations(db: Database.Database): void {
 
   // Add score column to existing databases (safe to re-run)
   addColumnIfNotExists(db, 'game_sessions', 'score', 'INTEGER DEFAULT 0');
+  addColumnIfNotExists(db, 'game_sessions', 'hint_used', 'BOOLEAN DEFAULT 0');
 }
 
 function addColumnIfNotExists(db: Database.Database, table: string, column: string, definition: string): void {

@@ -23,9 +23,11 @@ import { LeaderboardScreen } from './screens/LeaderboardScreen.js';
 import { SettingsScreen } from './screens/SettingsScreen.js';
 import { CategorySelect } from './screens/CategorySelect.js';
 import { PlayerSelectScreen } from './screens/PlayerSelectScreen.js';
+import { WelcomeScreen, type PlayerOverview } from './screens/WelcomeScreen.js';
 
 type Screen =
   | 'splash'
+  | 'welcome'
   | 'player_name'
   | 'main_menu'
   | 'difficulty_select'
@@ -92,7 +94,7 @@ export function App() {
   }, [db]);
 
   const handleGameEnd = useCallback((won: boolean, finalState: GameState) => {
-    if (!db) return;
+    if (!db || playerId === 0) return;
 
     const duration = getGameDuration(finalState);
     const score = calculateScore(finalState, won);
@@ -106,13 +108,14 @@ export function App() {
       guessedLetters: finalState.guessedLetters,
       durationSeconds: duration,
       score,
+      hintUsed: finalState.hintUsed,
     });
 
     incrementWordPlayed(db, finalState.wordId, won);
-    updateExecutionerMood(db, playerId, won);
+    updateExecutionerMood(db, playerId, won, difficulty);
 
     const newAchievements = checkNewAchievements(
-      db, playerId, won, finalState.wrongGuesses, duration, finalState.category
+      db, playerId, won, finalState.wrongGuesses, duration, finalState.category, score, finalState.hintUsed
     );
 
     const stats = getPlayerStats(db, playerId);
@@ -172,7 +175,29 @@ export function App() {
 
   switch (screen) {
     case 'splash':
-      return <SplashScreen onDone={() => setScreen('player_name')} />;
+      return <SplashScreen onDone={() => {
+        const existingPlayers = getAllPlayers(db);
+        setScreen(existingPlayers.length > 0 ? 'welcome' : 'player_name');
+      }} />;
+
+    case 'welcome': {
+      const allPlayers = getAllPlayers(db);
+      const overviews: PlayerOverview[] = allPlayers.map(p => ({
+        player: p,
+        stats: getPlayerStats(db, p.id),
+      }));
+      return (
+        <WelcomeScreen
+          players={overviews}
+          onSelectPlayer={(player) => {
+            setPlayerId(player.id);
+            setPlayerName(player.name);
+            setScreen('main_menu');
+          }}
+          onNewPlayer={() => setScreen('player_name')}
+        />
+      );
+    }
 
     case 'player_name':
       return <PlayerNameScreen onSubmit={handlePlayerName} />;
@@ -224,7 +249,6 @@ export function App() {
         <GameOverScreen
           won={gameResult.won}
           gameState={gameResult.state}
-          word={gameResult.state.word}
           newAchievements={gameResult.newAchievements}
           streak={gameResult.streak}
           onSelect={(action) => {
@@ -318,7 +342,9 @@ export function App() {
             if (result.success) {
               setPlayerName(newName);
               setScreen('settings');
+              return null;
             }
+            return result.error ?? 'Naam wijzigen mislukt';
           }}
           onBack={() => setScreen('settings')}
         />

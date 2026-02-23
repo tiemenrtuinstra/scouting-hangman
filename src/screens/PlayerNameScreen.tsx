@@ -26,7 +26,7 @@ export function PlayerNameScreen({ onSubmit }: PlayerNameScreenProps) {
         ))}
       </Box>
       <Text> </Text>
-      <Text bold color={THEME.secondary}>⚜️ Welkom bij Scouting Hangman! ⚜️</Text>
+      <Text bold color={THEME.secondary}>⚜ Welkom bij Scouting Hangman! ⚜</Text>
       <Text> </Text>
       <Text color={THEME.text}>Wat is je naam, scout?</Text>
       <Text> </Text>

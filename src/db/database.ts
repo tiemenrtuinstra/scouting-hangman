@@ -6,7 +6,7 @@ import fs from 'fs';
 
 let db: Database.Database | null = null;
 
-export function getDbPath(): string {
+function getDbPath(): string {
   const dataDir = path.join(os.homedir(), '.scouting-hangman');
   if (!fs.existsSync(dataDir)) {
     fs.mkdirSync(dataDir, { recursive: true });

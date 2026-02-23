@@ -11,7 +11,7 @@ interface PlayerSelectScreenProps {
   currentPlayerName: string;
   onSelectPlayer: (player: Player) => void;
   onCreatePlayer: (name: string) => void;
-  onRenamePlayer: (newName: string) => void;
+  onRenamePlayer: (newName: string) => string | null;
   onBack: () => void;
 }
 
@@ -26,11 +26,17 @@ export function PlayerSelectScreen({
 }: PlayerSelectScreenProps) {
   const [mode, setMode] = useState<'menu' | 'new' | 'rename'>('menu');
   const [inputValue, setInputValue] = useState('');
+  const [error, setError] = useState<string | null>(null);
 
   useInput((_input, key) => {
-    if (key.escape && mode !== 'menu') {
-      setInputValue('');
-      setMode('menu');
+    if (key.escape) {
+      if (mode !== 'menu') {
+        setInputValue('');
+        setError(null);
+        setMode('menu');
+      } else {
+        onBack();
+      }
     }
   });
 
@@ -69,16 +75,18 @@ export function PlayerSelectScreen({
           <Text color={THEME.highlight}>{'> '}</Text>
           <TextInput
             value={inputValue}
-            onChange={setInputValue}
+            onChange={(val) => { setInputValue(val); setError(null); }}
             onSubmit={(value) => {
               const trimmed = value.trim();
               if (trimmed.length > 0) {
-                onRenamePlayer(trimmed);
+                const err = onRenamePlayer(trimmed);
+                if (err) setError(err);
               }
             }}
             placeholder="Typ een nieuwe naam..."
           />
         </Box>
+        {error && <Text color={THEME.danger}>{error}</Text>}
         <Text> </Text>
         <Text color={THEME.muted}>Enter = bevestigen, Escape = annuleren</Text>
       </Box>
@@ -88,12 +96,12 @@ export function PlayerSelectScreen({
   const items = [
     ...players.map(p => ({
       label: p.id === currentPlayerId
-        ? `⚜️  ${p.name} (huidige speler)`
-        : `    ${p.name}`,
+        ? `⚜  ${p.name} (huidige speler)`
+        : `   ${p.name}`,
       value: `player:${p.id}`,
     })),
     { label: '➕  Nieuwe speler', value: 'action:new' },
-    { label: '✏️   Naam wijzigen', value: 'action:rename' },
+    { label: '✏  Naam wijzigen', value: 'action:rename' },
     { label: '← Terug', value: 'action:back' },
   ];
 
