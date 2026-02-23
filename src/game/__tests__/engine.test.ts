@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { createGameState, guessLetter, isGameWon, isGameLost, useHint, getDisplayWord, MAX_WRONG_GUESSES } from '../engine.js';
+import { createGameState, guessLetter, isGameWon, isGameLost, applyHint, getDisplayWord, MAX_WRONG_GUESSES } from '../engine.js';
 
 describe('Game Engine', () => {
   it('should create initial state', () => {
@@ -57,7 +57,7 @@ describe('Game Engine', () => {
 
   it('should handle hint correctly', () => {
     const state = createGameState('ab', 1, 'test');
-    const result = useHint(state);
+    const result = applyHint(state);
     expect(result.revealedLetter).toBeTruthy();
     expect(result.state.hintUsed).toBe(true);
     expect(result.state.wrongGuesses).toBe(1);
@@ -66,8 +66,8 @@ describe('Game Engine', () => {
 
   it('should not allow second hint', () => {
     let state = createGameState('abc', 1, 'test');
-    const first = useHint(state);
-    const second = useHint(first.state);
+    const first = applyHint(state);
+    const second = applyHint(first.state);
     expect(second.revealedLetter).toBeNull();
   });
 
@@ -86,7 +86,7 @@ describe('Game Engine', () => {
 
   it('should not reveal spaces as hint', () => {
     const state = createGameState('a b', 1, 'test');
-    const result = useHint(state);
+    const result = applyHint(state);
     expect(result.revealedLetter).not.toBe(' ');
   });
 });

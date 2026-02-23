@@ -1,10 +1,11 @@
 import React from 'react';
 import { Box, Text, useInput } from 'ink';
-import { StatsPanel, type PlayerStatsData } from '../ui/components/StatsPanel.js';
+import { StatsPanel } from '../ui/components/StatsPanel.js';
+import type { PlayerStats } from '../db/stats.js';
 import { THEME } from '../ui/colors.js';
 
 interface StatsScreenProps {
-  stats: PlayerStatsData;
+  stats: PlayerStats;
   playerName: string;
   onBack: () => void;
 }

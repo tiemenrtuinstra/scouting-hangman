@@ -7,7 +7,7 @@ import { getRandomWord, incrementWordPlayed, getAllCategories } from './db/words
 import { getOrCreatePlayer, getAllPlayers, renamePlayer, saveGameSession, getPlayerStats, getLeaderboard, resetPlayerStats, resetPlayerAchievements } from './db/stats.js';
 import { checkNewAchievements, getUnlockedAchievements } from './game/achievements.js';
 import { updateExecutionerMood } from './executioner/personality.js';
-import { createGameState, getGameDuration, type GameState } from './game/engine.js';
+import { createGameState, getGameDuration, calculateScore, type GameState } from './game/engine.js';
 import { DIFFICULTIES, type DifficultyLevel } from './game/difficulty.js';
 import { THEME } from './ui/colors.js';
 
@@ -95,6 +95,7 @@ export function App() {
     if (!db) return;
 
     const duration = getGameDuration(finalState);
+    const score = calculateScore(finalState, won);
 
     saveGameSession(db, {
       playerId,
@@ -104,6 +105,7 @@ export function App() {
       wrongGuesses: finalState.wrongGuesses,
       guessedLetters: finalState.guessedLetters,
       durationSeconds: duration,
+      score,
     });
 
     incrementWordPlayed(db, finalState.wordId, won);
@@ -212,6 +214,7 @@ export function App() {
           hint={currentHint}
           onStateChange={setGameState}
           onGameEnd={handleGameEnd}
+          onQuit={() => setScreen('main_menu')}
         />
       );
 

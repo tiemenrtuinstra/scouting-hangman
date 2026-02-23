@@ -28,6 +28,7 @@ export function runMigrations(db: Database.Database): void {
       wrong_guesses INTEGER NOT NULL,
       guessed_letters TEXT NOT NULL,
       duration_seconds INTEGER,
+      score INTEGER DEFAULT 0,
       started_at DATETIME DEFAULT CURRENT_TIMESTAMP,
       finished_at DATETIME,
       FOREIGN KEY (player_id) REFERENCES players(id),
@@ -52,5 +53,22 @@ export function runMigrations(db: Database.Database): void {
       FOREIGN KEY (player_id) REFERENCES players(id),
       UNIQUE(player_id)
     );
+
+    -- Indexes for frequently queried columns
+    CREATE INDEX IF NOT EXISTS idx_game_sessions_player ON game_sessions(player_id);
+    CREATE INDEX IF NOT EXISTS idx_game_sessions_word ON game_sessions(word_id);
+    CREATE INDEX IF NOT EXISTS idx_achievements_player ON achievements(player_id);
+    CREATE INDEX IF NOT EXISTS idx_words_category ON words(category);
+    CREATE INDEX IF NOT EXISTS idx_words_difficulty ON words(difficulty);
   `);
+
+  // Add score column to existing databases (safe to re-run)
+  addColumnIfNotExists(db, 'game_sessions', 'score', 'INTEGER DEFAULT 0');
+}
+
+function addColumnIfNotExists(db: Database.Database, table: string, column: string, definition: string): void {
+  const columns = db.prepare(`PRAGMA table_info(${table})`).all() as { name: string }[];
+  if (!columns.some(c => c.name === column)) {
+    db.exec(`ALTER TABLE ${table} ADD COLUMN ${column} ${definition}`);
+  }
 }

@@ -7,19 +7,33 @@ interface ExecutionerBubbleProps {
   dialogue: ExecutionerDialogue;
 }
 
+function wrapText(text: string, maxWidth: number): string[] {
+  const words = text.split(' ');
+  const lines: string[] = [];
+  let currentLine = '';
+
+  for (const word of words) {
+    if (currentLine.length === 0) {
+      currentLine = word;
+    } else if (currentLine.length + 1 + word.length <= maxWidth) {
+      currentLine += ' ' + word;
+    } else {
+      lines.push(currentLine);
+      currentLine = word;
+    }
+  }
+  if (currentLine.length > 0) lines.push(currentLine);
+  return lines.length > 0 ? lines : [''];
+}
+
 export function ExecutionerBubble({ dialogue }: ExecutionerBubbleProps) {
   const color = getMoodColor(dialogue.mood);
   const maxWidth = 50;
-  const text = dialogue.text;
 
   const topBorder = `╭${'─'.repeat(maxWidth)}╮`;
   const bottomBorder = `╰${'─'.repeat(maxWidth)}╯`;
 
-  const padded = text.padEnd(maxWidth);
-  const lines = [];
-  for (let i = 0; i < padded.length; i += maxWidth) {
-    lines.push(padded.slice(i, i + maxWidth));
-  }
+  const lines = wrapText(dialogue.text, maxWidth);
 
   return (
     <Box flexDirection="row" gap={1}>

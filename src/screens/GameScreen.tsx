@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect, useRef } from 'react';
 import { Box, Text, useInput } from 'ink';
 import type Database from 'better-sqlite3';
 import { GameHeader } from '../ui/components/GameHeader.js';
@@ -14,22 +14,25 @@ import {
   guessLetter,
   isGameWon,
   isGameLost,
-  useHint,
+  applyHint,
 } from '../game/engine.js';
 import {
   getExecutionerDialogue,
   type ExecutionerDialogue,
 } from '../executioner/personality.js';
+import { DIFFICULTIES } from '../game/difficulty.js';
+import type { DifficultyLevel } from '../game/difficulty.js';
 
 interface GameScreenProps {
   db: Database.Database;
   gameState: GameState;
   playerId: number;
   playerName: string;
-  difficulty: string;
+  difficulty: DifficultyLevel;
   hint: string | null;
   onStateChange: (state: GameState) => void;
   onGameEnd: (won: boolean, finalState: GameState) => void;
+  onQuit: () => void;
 }
 
 export function GameScreen({
@@ -41,12 +44,24 @@ export function GameScreen({
   hint,
   onStateChange,
   onGameEnd,
+  onQuit,
 }: GameScreenProps) {
   const [dialogue, setDialogue] = useState<ExecutionerDialogue>(
     () => getExecutionerDialogue(db, playerId, 'game_start', difficulty)
   );
   const [showHint, setShowHint] = useState(false);
-  const [lastGuess, setLastGuess] = useState<string | null>(null);
+  const endTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(() => {
+    return () => {
+      if (endTimerRef.current) clearTimeout(endTimerRef.current);
+    };
+  }, []);
+
+  const scheduleGameEnd = useCallback((won: boolean, state: GameState) => {
+    if (endTimerRef.current) clearTimeout(endTimerRef.current);
+    endTimerRef.current = setTimeout(() => onGameEnd(won, state), 1500);
+  }, [onGameEnd]);
 
   const handleGuess = useCallback((letter: string) => {
     if (isGameWon(gameState) || isGameLost(gameState)) return;
@@ -54,14 +69,13 @@ export function GameScreen({
 
     const newState = guessLetter(gameState, letter);
     onStateChange(newState);
-    setLastGuess(letter);
 
     if (isGameWon(newState)) {
       setDialogue(getExecutionerDialogue(db, playerId, 'win', difficulty));
-      setTimeout(() => onGameEnd(true, newState), 1500);
+      scheduleGameEnd(true, newState);
     } else if (isGameLost(newState)) {
       setDialogue(getExecutionerDialogue(db, playerId, 'loss', difficulty));
-      setTimeout(() => onGameEnd(false, newState), 1500);
+      scheduleGameEnd(false, newState);
     } else if (newState.wrongGuesses > gameState.wrongGuesses) {
       if (newState.wrongGuesses >= newState.maxWrongGuesses - 1) {
         setDialogue(getExecutionerDialogue(db, playerId, 'almost_dead', difficulty));
@@ -71,19 +85,29 @@ export function GameScreen({
     } else {
       setDialogue(getExecutionerDialogue(db, playerId, 'correct_guess', difficulty));
     }
-  }, [gameState, db, playerId, difficulty, onStateChange, onGameEnd]);
+  }, [gameState, db, playerId, difficulty, onStateChange, scheduleGameEnd]);
 
   useInput((input, key) => {
-    if (key.escape) return;
+    if (key.escape) {
+      onQuit();
+      return;
+    }
+
+    if (isGameWon(gameState) || isGameLost(gameState)) return;
 
     if (input === '?' && !gameState.hintUsed && hint) {
       if (!showHint) {
         setShowHint(true);
       } else {
-        const result = useHint(gameState);
+        const result = applyHint(gameState);
         if (result.revealedLetter) {
           onStateChange(result.state);
-          setDialogue(getExecutionerDialogue(db, playerId, 'wrong_guess', difficulty));
+          if (isGameLost(result.state)) {
+            setDialogue(getExecutionerDialogue(db, playerId, 'loss', difficulty));
+            scheduleGameEnd(false, result.state);
+          } else {
+            setDialogue(getExecutionerDialogue(db, playerId, 'wrong_guess', difficulty));
+          }
         }
       }
       return;
@@ -101,7 +125,7 @@ export function GameScreen({
     <Box flexDirection="column" gap={1}>
       <GameHeader
         category={gameState.category}
-        difficulty={difficulty}
+        difficulty={DIFFICULTIES[difficulty].label}
         playerName={playerName}
       />
 
@@ -141,6 +165,7 @@ export function GameScreen({
             <Text color={THEME.muted}>
               Type een letter om te raden
               {hint && !gameState.hintUsed && ' │ ? = hint'}
+              {' │ Esc = stoppen'}
             </Text>
           )}
 

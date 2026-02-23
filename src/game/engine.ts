@@ -39,7 +39,7 @@ export function guessLetter(state: GameState, letter: string): GameState {
   };
 }
 
-export function useHint(state: GameState): { state: GameState; revealedLetter: string | null } {
+export function applyHint(state: GameState): { state: GameState; revealedLetter: string | null } {
   if (state.hintUsed || isGameWon(state) || isGameLost(state)) {
     return { state, revealedLetter: null };
   }

@@ -51,19 +51,16 @@ export function getRandomWord(
   return db.prepare(query).get(...params) as Word | undefined;
 }
 
-export function getWordsByCategory(db: Database.Database, category: string): Word[] {
-  return db.prepare('SELECT * FROM words WHERE category = ? ORDER BY word').all(category) as Word[];
-}
-
 export function getAllCategories(db: Database.Database): string[] {
   const rows = db.prepare('SELECT DISTINCT category FROM words ORDER BY category').all() as { category: string }[];
   return rows.map(r => r.category);
 }
 
 export function incrementWordPlayed(db: Database.Database, wordId: number, won: boolean): void {
-  db.prepare('UPDATE words SET times_played = times_played + 1 WHERE id = ?').run(wordId);
   if (won) {
-    db.prepare('UPDATE words SET times_won = times_won + 1 WHERE id = ?').run(wordId);
+    db.prepare('UPDATE words SET times_played = times_played + 1, times_won = times_won + 1 WHERE id = ?').run(wordId);
+  } else {
+    db.prepare('UPDATE words SET times_played = times_played + 1 WHERE id = ?').run(wordId);
   }
 }
 

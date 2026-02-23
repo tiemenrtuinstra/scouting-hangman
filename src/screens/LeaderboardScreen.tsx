@@ -1,13 +1,7 @@
 import React from 'react';
 import { Box, Text, useInput } from 'ink';
 import { THEME } from '../ui/colors.js';
-
-interface LeaderboardEntry {
-  name: string;
-  wins: number;
-  totalGames: number;
-  winRate: number;
-}
+import type { LeaderboardEntry } from '../db/stats.js';
 
 interface LeaderboardScreenProps {
   entries: LeaderboardEntry[];
@@ -34,6 +28,7 @@ export function LeaderboardScreen({ entries, onBack }: LeaderboardScreenProps) {
           <Box gap={2} marginBottom={1}>
             <Text bold color={THEME.muted}>#  </Text>
             <Text bold color={THEME.muted}>{'Speler'.padEnd(20)}</Text>
+            <Text bold color={THEME.muted}>{'Score'.padStart(8)}</Text>
             <Text bold color={THEME.muted}>{'Wins'.padStart(6)}</Text>
             <Text bold color={THEME.muted}>{'Gespeeld'.padStart(10)}</Text>
             <Text bold color={THEME.muted}>{'Win%'.padStart(6)}</Text>
@@ -42,6 +37,7 @@ export function LeaderboardScreen({ entries, onBack }: LeaderboardScreenProps) {
             <Box key={entry.name} gap={2}>
               <Text color={THEME.secondary}>{MEDALS[i] ?? `${i + 1}. `}</Text>
               <Text color={THEME.text} bold={i < 3}>{entry.name.padEnd(20)}</Text>
+              <Text color={THEME.secondary}>{String(entry.totalScore).padStart(8)}</Text>
               <Text color={THEME.success}>{String(entry.wins).padStart(6)}</Text>
               <Text color={THEME.text}>{String(entry.totalGames).padStart(10)}</Text>
               <Text color={THEME.highlight}>{`${entry.winRate}%`.padStart(6)}</Text>
