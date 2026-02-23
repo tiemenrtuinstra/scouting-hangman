@@ -119,6 +119,26 @@ function calculateStreaks(db: Database.Database, playerId: number): { current: n
   return { current, best };
 }
 
+export function getAllPlayers(db: Database.Database): Player[] {
+  return db.prepare('SELECT * FROM players ORDER BY name').all() as Player[];
+}
+
+export function renamePlayer(db: Database.Database, playerId: number, newName: string): { success: boolean; error?: string } {
+  const conflict = db.prepare('SELECT id FROM players WHERE name = ? AND id != ?').get(newName, playerId);
+  if (conflict) return { success: false, error: 'Deze naam is al in gebruik' };
+  db.prepare('UPDATE players SET name = ? WHERE id = ?').run(newName, playerId);
+  return { success: true };
+}
+
+export function resetPlayerStats(db: Database.Database, playerId: number): void {
+  db.prepare('DELETE FROM game_sessions WHERE player_id = ?').run(playerId);
+  db.prepare('DELETE FROM executioner_memory WHERE player_id = ?').run(playerId);
+}
+
+export function resetPlayerAchievements(db: Database.Database, playerId: number): void {
+  db.prepare('DELETE FROM achievements WHERE player_id = ?').run(playerId);
+}
+
 export function getLeaderboard(db: Database.Database, limit = 10): LeaderboardEntry[] {
   return db.prepare(`
     SELECT

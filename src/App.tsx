@@ -4,7 +4,7 @@ import type Database from 'better-sqlite3';
 import { getDatabase, initializeDatabase } from './db/database.js';
 import { seedDatabase } from './db/seed.js';
 import { getRandomWord, incrementWordPlayed, getAllCategories } from './db/words.js';
-import { getOrCreatePlayer, saveGameSession, getPlayerStats, getLeaderboard } from './db/stats.js';
+import { getOrCreatePlayer, getAllPlayers, renamePlayer, saveGameSession, getPlayerStats, getLeaderboard, resetPlayerStats, resetPlayerAchievements } from './db/stats.js';
 import { checkNewAchievements, getUnlockedAchievements } from './game/achievements.js';
 import { updateExecutionerMood } from './executioner/personality.js';
 import { createGameState, getGameDuration, type GameState } from './game/engine.js';
@@ -20,17 +20,23 @@ import { GameOverScreen } from './screens/GameOverScreen.js';
 import { StatsScreen } from './screens/StatsScreen.js';
 import { AchievementsScreen } from './screens/AchievementsScreen.js';
 import { LeaderboardScreen } from './screens/LeaderboardScreen.js';
+import { SettingsScreen } from './screens/SettingsScreen.js';
+import { CategorySelect } from './screens/CategorySelect.js';
+import { PlayerSelectScreen } from './screens/PlayerSelectScreen.js';
 
 type Screen =
   | 'splash'
   | 'player_name'
   | 'main_menu'
   | 'difficulty_select'
+  | 'category_select'
   | 'playing'
   | 'game_over'
   | 'stats'
   | 'achievements'
-  | 'leaderboard';
+  | 'leaderboard'
+  | 'settings'
+  | 'player_select';
 
 export function App() {
   const { exit } = useApp();
@@ -47,6 +53,7 @@ export function App() {
     newAchievements: string[];
     streak: number;
   } | null>(null);
+  const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -60,20 +67,24 @@ export function App() {
     }
   }, []);
 
-  const startGame = useCallback((diff: DifficultyLevel) => {
+  const startGame = useCallback((diff: DifficultyLevel, category: string | null) => {
     if (!db) return;
 
     const config = DIFFICULTIES[diff];
     const randomDifficulty = config.dbDifficulty[Math.floor(Math.random() * config.dbDifficulty.length)];
-    const word = getRandomWord(db, { difficulty: randomDifficulty });
+    const word = getRandomWord(db, {
+      difficulty: randomDifficulty,
+      ...(category ? { category } : {}),
+    });
 
     if (!word) {
-      setError('Geen woorden beschikbaar. Probeer een andere moeilijkheidsgraad.');
+      setError('Geen woorden beschikbaar voor deze combinatie. Probeer een andere categorie of moeilijkheidsgraad.');
       setScreen('main_menu');
       return;
     }
 
     setDifficulty(diff);
+    setSelectedCategory(category);
     setGameState(createGameState(word.word, word.id, word.category));
     setCurrentHint(word.hint);
     setGameResult(null);
@@ -127,6 +138,9 @@ export function App() {
       case 'leaderboard':
         setScreen('leaderboard');
         break;
+      case 'settings':
+        setScreen('settings');
+        break;
       case 'quit':
         exit();
         break;
@@ -167,10 +181,24 @@ export function App() {
     case 'difficulty_select':
       return (
         <DifficultySelect
-          onSelect={startGame}
+          onSelect={(diff) => {
+            setDifficulty(diff);
+            setScreen('category_select');
+          }}
           onBack={() => setScreen('main_menu')}
         />
       );
+
+    case 'category_select': {
+      const categories = getAllCategories(db);
+      return (
+        <CategorySelect
+          categories={categories}
+          onSelect={(category) => startGame(difficulty, category)}
+          onBack={() => setScreen('difficulty_select')}
+        />
+      );
+    }
 
     case 'playing':
       if (!gameState) return null;
@@ -199,7 +227,7 @@ export function App() {
           onSelect={(action) => {
             switch (action) {
               case 'play_again':
-                startGame(difficulty);
+                startGame(difficulty, selectedCategory);
                 break;
               case 'menu':
                 setScreen('main_menu');
@@ -239,6 +267,57 @@ export function App() {
         <LeaderboardScreen
           entries={entries}
           onBack={() => setScreen('main_menu')}
+        />
+      );
+    }
+
+    case 'settings':
+      return (
+        <SettingsScreen
+          currentDifficulty={difficulty}
+          playerName={playerName}
+          onChangeDifficulty={setDifficulty}
+          onSwitchPlayer={() => setScreen('player_select')}
+          onResetStats={() => {
+            resetPlayerStats(db, playerId);
+          }}
+          onResetAchievements={() => {
+            resetPlayerAchievements(db, playerId);
+          }}
+          onResetAll={() => {
+            resetPlayerStats(db, playerId);
+            resetPlayerAchievements(db, playerId);
+          }}
+          onBack={() => setScreen('main_menu')}
+        />
+      );
+
+    case 'player_select': {
+      const players = getAllPlayers(db);
+      return (
+        <PlayerSelectScreen
+          players={players}
+          currentPlayerId={playerId}
+          currentPlayerName={playerName}
+          onSelectPlayer={(player) => {
+            setPlayerId(player.id);
+            setPlayerName(player.name);
+            setScreen('main_menu');
+          }}
+          onCreatePlayer={(name) => {
+            const player = getOrCreatePlayer(db, name);
+            setPlayerId(player.id);
+            setPlayerName(player.name);
+            setScreen('main_menu');
+          }}
+          onRenamePlayer={(newName) => {
+            const result = renamePlayer(db, playerId, newName);
+            if (result.success) {
+              setPlayerName(newName);
+              setScreen('settings');
+            }
+          }}
+          onBack={() => setScreen('settings')}
         />
       );
     }
